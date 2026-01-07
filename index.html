@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Church Management Dashboard</title>
     <style>
         * {
@@ -14,8 +14,10 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #f3f4f6;
+            overflow-x: hidden;
         }
 
+        /* Login Screen */
         .login-container {
             position: fixed;
             top: 0;
@@ -27,6 +29,7 @@
             align-items: center;
             justify-content: center;
             z-index: 3000;
+            padding: 1rem;
         }
 
         .login-container.hidden {
@@ -35,11 +38,11 @@
 
         .login-box {
             background: white;
-            padding: 3rem;
+            padding: 2rem;
             border-radius: 1rem;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             max-width: 400px;
-            width: 90%;
+            width: 100%;
         }
 
         .login-logo {
@@ -77,22 +80,57 @@
             display: block;
         }
 
+        /* App Container */
         .app-container {
             display: none;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
         }
 
         .app-container.active {
             display: flex;
         }
 
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* Sidebar */
         .sidebar {
             width: 250px;
             background: #1f2937;
             color: white;
             padding: 1.5rem;
             overflow-y: auto;
+            flex-shrink: 0;
         }
 
         .logo {
@@ -111,6 +149,7 @@
             align-items: center;
             gap: 0.75rem;
             transition: background 0.2s;
+            font-size: 0.95rem;
         }
 
         .menu-item:hover {
@@ -137,11 +176,12 @@
             background: #dc2626;
         }
 
+        /* Main Content */
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            min-width: 0;
         }
 
         .topbar {
@@ -180,6 +220,7 @@
             flex: 1;
             padding: 1.5rem;
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .section {
@@ -190,9 +231,10 @@
             display: block;
         }
 
+        /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -226,6 +268,7 @@
             font-size: 0.875rem;
         }
 
+        /* Cards */
         .card {
             background: white;
             border-radius: 0.5rem;
@@ -239,6 +282,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .card-title {
@@ -246,6 +291,7 @@
             font-weight: 600;
         }
 
+        /* Buttons */
         .btn {
             background: #2563eb;
             color: white;
@@ -254,6 +300,7 @@
             border-radius: 0.375rem;
             cursor: pointer;
             font-size: 0.875rem;
+            white-space: nowrap;
         }
 
         .btn:hover {
@@ -293,13 +340,21 @@
         }
 
         .btn-small {
-            padding: 0.25rem 0.5rem;
+            padding: 0.35rem 0.6rem;
             font-size: 0.75rem;
+        }
+
+        /* Tables */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
 
         th {
@@ -322,12 +377,14 @@
             background: #f9fafb;
         }
 
+        /* Badges */
         .badge {
             display: inline-block;
             padding: 0.25rem 0.75rem;
             border-radius: 1rem;
             font-size: 0.75rem;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .badge-active {
@@ -345,6 +402,7 @@
             color: #1e40af;
         }
 
+        /* Forms */
         .input, select, textarea {
             width: 100%;
             padding: 0.5rem 0.75rem;
@@ -367,6 +425,7 @@
             font-size: 0.875rem;
         }
 
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -375,9 +434,11 @@
             right: 0;
             bottom: 0;
             background: rgba(0,0,0,0.5);
-            z-index: 1000;
+            z-index: 2000;
             align-items: center;
             justify-content: center;
+            padding: 1rem;
+            overflow-y: auto;
         }
 
         .modal.active {
@@ -389,7 +450,7 @@
             border-radius: 0.5rem;
             padding: 2rem;
             max-width: 600px;
-            width: 90%;
+            width: 100%;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -409,6 +470,7 @@
             color: #6b7280;
         }
 
+        /* Notification */
         .notification {
             position: fixed;
             top: 1rem;
@@ -417,9 +479,10 @@
             padding: 1rem 1.5rem;
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 2000;
+            z-index: 3000;
             display: none;
             border-left: 4px solid #10b981;
+            max-width: 90%;
         }
 
         .notification.active {
@@ -432,12 +495,172 @@
         }
 
         @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Event Items */
+        .event-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .event-item h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Action Buttons Container */
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* RESPONSIVE BREAKPOINTS */
+        
+        /* Tablet and below */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .app-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                top: 0;
+                bottom: 0;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.mobile-active {
+                left: 0;
+            }
+
+            .topbar {
+                padding-left: 4.5rem;
+            }
+
+            .topbar h1 {
+                font-size: 1.1rem;
+            }
+
+            .user-info span {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .card-header .btn {
+                width: 100%;
+            }
+
+            th, td {
+                padding: 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            .btn-small {
+                padding: 0.25rem 0.4rem;
+                font-size: 0.7rem;
+            }
+
+            .action-btns {
+                flex-direction: column;
+            }
+
+            .action-btns .btn {
+                width: 100%;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Small mobile */
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 1.5rem;
+            }
+
+            .login-logo {
+                font-size: 2.5rem;
+            }
+
+            .login-title {
+                font-size: 1.25rem;
+            }
+
+            .topbar h1 {
+                font-size: 0.95rem;
+            }
+
+            .logo {
+                font-size: 1.25rem;
+            }
+
+            .menu-item {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.85rem;
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+            }
+
+            .card-title {
+                font-size: 1rem;
+            }
+
+            .btn {
+                font-size: 0.8rem;
+                padding: 0.45rem 0.8rem;
+            }
+
+            table {
+                min-width: 500px;
+            }
+
+            .modal-content {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Login Screen -->
     <div id="login-screen" class="login-container">
         <div class="login-box">
             <div class="login-logo">⛪</div>
@@ -453,12 +676,20 @@
         </div>
     </div>
 
+    <!-- Notification -->
     <div id="notification" class="notification">
         <span id="notification-text"></span>
     </div>
 
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- Main App -->
     <div id="app-container" class="app-container">
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
             <div class="logo">⛪ ChurchOS</div>
             <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
             <div class="menu-item" onclick="showSection('members')">👥 Members</div>
@@ -481,6 +712,7 @@
             </div>
 
             <div class="content-area">
+                <!-- Dashboard -->
                 <section id="dashboard" class="section active">
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -508,11 +740,11 @@
                         <div class="card-header">
                             <h3 class="card-title">Quick Actions</h3>
                         </div>
-                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0.75rem">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem">
                             <button class="btn" onclick="openAddModal('member')">➕ Add Member</button>
                             <button class="btn btn-warning" onclick="openAddModal('visitor')">🚶 Add Visitor</button>
-                            <button class="btn btn-success" onclick="openAddModal('attendance')">✓ Record Attendance</button>
-                            <button class="btn btn-secondary" onclick="openAddModal('event')">📅 Create Event</button>
+                            <button class="btn btn-success" onclick="openAddModal('attendance')">✓ Attendance</button>
+                            <button class="btn btn-secondary" onclick="openAddModal('event')">📅 Event</button>
                         </div>
                     </div>
                     <div class="card">
@@ -523,6 +755,7 @@
                     </div>
                 </section>
 
+                <!-- Members -->
                 <section id="members" class="section">
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -532,17 +765,14 @@
                         <div class="stat-card">
                             <div class="stat-value" id="women-count">0</div>
                             <div class="stat-label">WOMEN</div>
-                            <p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem">Active Members</p>
                         </div>
                         <div class="stat-card">
                             <div class="stat-value" id="youth-count">0</div>
                             <div class="stat-label">YOUTH</div>
-                            <p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem">Ages 13-25</p>
                         </div>
                         <div class="stat-card">
                             <div class="stat-value" id="children-count">0</div>
                             <div class="stat-label">CHILDREN</div>
-                            <p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem">Ages 0-12</p>
                         </div>
                     </div>
                     
@@ -556,45 +786,54 @@
                             <h3 class="card-title">Church Members</h3>
                             <button class="btn" onclick="openAddModal('member')">➕ Add Member</button>
                         </div>
-                        <table>
-                            <thead>
-                                <tr><th>NAME</th><th>GENDER</th><th>Email</th><th>NUMBER</th><th>STATUS</th><th>LOCATION</th><th>ACTIONS</th></tr>
-                            </thead>
-                            <tbody id="members-tbody"></tbody>
-                        </table>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr><th>NAME</th><th>GENDER</th><th>Email</th><th>NUMBER</th><th>STATUS</th><th>LOCATION</th><th>ACTIONS</th></tr>
+                                </thead>
+                                <tbody id="members-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
 
+                <!-- Visitors -->
                 <section id="visitors" class="section">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Church Visitors</h3>
                             <button class="btn btn-warning" onclick="openAddModal('visitor')">🚶 Add Visitor</button>
                         </div>
-                        <table>
-                            <thead>
-                                <tr><th>Name</th><th>Phone</th><th>Visit Date</th><th>Type</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody id="visitors-tbody"></tbody>
-                        </table>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr><th>Name</th><th>Phone</th><th>Visit Date</th><th>Type</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody id="visitors-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
 
+                <!-- Attendance -->
                 <section id="attendance" class="section">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Attendance Tracking</h3>
                             <button class="btn btn-success" onclick="openAddModal('attendance')">✓ Record Attendance</button>
                         </div>
-                        <table>
-                            <thead>
-                                <tr><th>Date</th><th>Service</th><th>Attendance</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody id="attendance-tbody"></tbody>
-                        </table>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr><th>Date</th><th>Service</th><th>Attendance</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody id="attendance-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
 
+                <!-- Events -->
                 <section id="events" class="section">
                     <div class="card">
                         <div class="card-header">
@@ -605,21 +844,25 @@
                     </div>
                 </section>
 
+                <!-- Sermons -->
                 <section id="sermons" class="section">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Sermon Library</h3>
                             <button class="btn" onclick="openAddModal('sermon')">➕ Upload Sermon</button>
                         </div>
-                        <table>
-                            <thead>
-                                <tr><th>Title</th><th>Speaker</th><th>Date</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody id="sermons-tbody"></tbody>
-                        </table>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr><th>Title</th><th>Speaker</th><th>Date</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody id="sermons-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
 
+                <!-- Finance -->
                 <section id="finance" class="section">
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -638,27 +881,32 @@
                             <h3 class="card-title">Transactions</h3>
                             <button class="btn" onclick="openAddModal('transaction')">➕ Add Transaction</button>
                         </div>
-                        <table>
-                            <thead>
-                                <tr><th>Date</th><th>Type</th><th>Description</th><th>Amount (GHS)</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody id="finance-tbody"></tbody>
-                        </table>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr><th>Date</th><th>Type</th><th>Description</th><th>Amount (GHS)</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody id="finance-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
 
+                <!-- Meeting Notes -->
                 <section id="meetings" class="section">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Meeting Notes</h3>
                             <button class="btn" onclick="openAddModal('meeting')">➕ Add Meeting Notes</button>
                         </div>
-                        <table>
-                            <thead>
-                                <tr><th>Meeting Title</th><th>Date</th><th>Type</th><th>Attendees</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody id="meetings-tbody"></tbody>
-                        </table>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr><th>Meeting Title</th><th>Date</th><th>Type</th><th>Attendees</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody id="meetings-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -694,7 +942,7 @@
             <input type="tel" class="input" id="member-phone">
             <label class="label">Location</label>
             <input type="text" class="input" id="member-location">
-            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap">
                 <button class="btn btn-secondary" onclick="closeModal('member-modal')">Cancel</button>
                 <button class="btn" onclick="saveMember()">Save</button>
             </div>
@@ -723,7 +971,7 @@
             </select>
             <label class="label">Notes</label>
             <textarea class="input" id="visitor-notes" rows="3"></textarea>
-            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap">
                 <button class="btn btn-secondary" onclick="closeModal('visitor-modal')">Cancel</button>
                 <button class="btn btn-warning" onclick="saveVisitor()">Save</button>
             </div>
@@ -748,7 +996,7 @@
             </select>
             <label class="label">Total Attendance</label>
             <input type="number" class="input" id="att-count">
-            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap">
                 <button class="btn btn-secondary" onclick="closeModal('attendance-modal')">Cancel</button>
                 <button class="btn btn-success" onclick="saveAttendance()">Save</button>
             </div>
@@ -769,7 +1017,7 @@
             <input type="date" class="input" id="event-date">
             <label class="label">Location</label>
             <input type="text" class="input" id="event-location">
-            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap">
                 <button class="btn btn-secondary" onclick="closeModal('event-modal')">Cancel</button>
                 <button class="btn" onclick="saveEvent()">Save</button>
             </div>
@@ -790,7 +1038,7 @@
             <input type="text" class="input" id="sermon-speaker">
             <label class="label">Date</label>
             <input type="date" class="input" id="sermon-date">
-            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap">
                 <button class="btn btn-secondary" onclick="closeModal('sermon-modal')">Cancel</button>
                 <button class="btn" onclick="saveSermon()">Save</button>
             </div>
@@ -816,7 +1064,7 @@
             <input type="text" class="input" id="trans-description">
             <label class="label">Amount (GHS ₵)</label>
             <input type="number" class="input" id="trans-amount" step="0.01">
-            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap">
                 <button class="btn btn-secondary" onclick="closeModal('transaction-modal')">Cancel</button>
                 <button class="btn" onclick="saveTransaction()">Save</button>
             </div>
@@ -832,7 +1080,7 @@
             </div>
             <input type="hidden" id="meeting-id">
             <label class="label">Meeting Title</label>
-            <input type="text" class="input" id="meeting-title" placeholder="e.g., Board Meeting, Staff Meeting">
+            <input type="text" class="input" id="meeting-title" placeholder="e.g., Board Meeting">
             <label class="label">Meeting Date</label>
             <input type="date" class="input" id="meeting-date">
             <label class="label">Meeting Type</label>
@@ -845,10 +1093,10 @@
                 <option>Other</option>
             </select>
             <label class="label">Attendees</label>
-            <input type="text" class="input" id="meeting-attendees" placeholder="Names of attendees (comma separated)">
+            <input type="text" class="input" id="meeting-attendees" placeholder="Names (comma separated)">
             <label class="label">Meeting Notes/Minutes</label>
-            <textarea class="input" id="meeting-notes" rows="6" placeholder="Enter meeting notes, decisions, action items..."></textarea>
-            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+            <textarea class="input" id="meeting-notes" rows="6" placeholder="Enter meeting notes..."></textarea>
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap">
                 <button class="btn btn-secondary" onclick="closeModal('meeting-modal')">Cancel</button>
                 <button class="btn" onclick="saveMeeting()">Save</button>
             </div>
@@ -875,7 +1123,7 @@
             { id: 2, date: '2026-01-04', type: 'Expense', description: 'Utility Bills', amount: -850 }
         ];
         let meetings = [
-            { id: 1, title: 'Board Meeting - January', date: '2026-01-03', type: 'Board Meeting', attendees: 'Pastor James, Elder John, Sister Mary', notes: 'Discussed budget for 2026. Approved new outreach program. Need to follow up on building repairs.' }
+            { id: 1, title: 'Board Meeting - January', date: '2026-01-03', type: 'Board Meeting', attendees: 'Pastor James, Elder John', notes: 'Discussed budget for 2026.' }
         ];
         let activities = [];
 
@@ -930,6 +1178,13 @@
             renderActivities();
         }
 
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('mobile-active');
+            overlay.classList.toggle('active');
+        }
+
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
@@ -937,6 +1192,11 @@
             event.target.classList.add('active');
             const titles = { dashboard: 'Dashboard', members: 'Members', visitors: 'Visitors', attendance: 'Attendance', events: 'Events', sermons: 'Sermons', finance: 'Finance', meetings: 'Meeting Notes' };
             document.getElementById('page-title').textContent = titles[id];
+            
+            // Close mobile menu on mobile
+            if (window.innerWidth <= 768) {
+                toggleMobileMenu();
+            }
         }
 
         function openAddModal(type) {
@@ -1034,13 +1294,14 @@
                     <td><span class="badge badge-active">${m.status}</span></td>
                     <td>${m.location}</td>
                     <td>
-                        <button class="btn btn-warning btn-small" onclick="editMember(${m.id})">Edit</button>
-                        <button class="btn btn-danger btn-small" onclick="deleteMember(${m.id})">Delete</button>
+                        <div class="action-btns">
+                            <button class="btn btn-warning btn-small" onclick="editMember(${m.id})">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteMember(${m.id})">Delete</button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
             
-            // Update member statistics
             const menCount = members.filter(m => m.gender === 'Male' && m.ageCategory === 'Adult').length;
             const womenCount = members.filter(m => m.gender === 'Female' && m.ageCategory === 'Adult').length;
             const youthCount = members.filter(m => m.ageCategory === 'Youth').length;
@@ -1114,8 +1375,10 @@
                     <td>${v.visitDate}</td>
                     <td><span class="badge badge-${v.type === 'First Time' ? 'new' : 'returning'}">${v.type}</span></td>
                     <td>
-                        <button class="btn btn-warning btn-small" onclick="editVisitor(${v.id})">Edit</button>
-                        <button class="btn btn-danger btn-small" onclick="deleteVisitor(${v.id})">Delete</button>
+                        <div class="action-btns">
+                            <button class="btn btn-warning btn-small" onclick="editVisitor(${v.id})">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteVisitor(${v.id})">Delete</button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -1175,8 +1438,10 @@
                     <td>${a.service}</td>
                     <td>${a.count}</td>
                     <td>
-                        <button class="btn btn-warning btn-small" onclick="editAttendance(${a.id})">Edit</button>
-                        <button class="btn btn-danger btn-small" onclick="deleteAttendance(${a.id})">Delete</button>
+                        <div class="action-btns">
+                            <button class="btn btn-warning btn-small" onclick="editAttendance(${a.id})">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteAttendance(${a.id})">Delete</button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -1231,10 +1496,10 @@
 
         function renderEvents() {
             document.getElementById('events-list').innerHTML = events.map(e => `
-                <div class="card" style="margin-bottom:1rem">
+                <div class="event-item">
                     <h4>${e.title}</h4>
                     <p style="color:#6b7280;font-size:0.875rem">📅 ${e.date} • 📍 ${e.location}</p>
-                    <div style="margin-top:0.5rem">
+                    <div class="action-btns" style="margin-top:0.75rem">
                         <button class="btn btn-warning btn-small" onclick="editEvent(${e.id})">Edit</button>
                         <button class="btn btn-danger btn-small" onclick="deleteEvent(${e.id})">Delete</button>
                     </div>
@@ -1294,8 +1559,10 @@
                     <td>${s.speaker}</td>
                     <td>${s.date}</td>
                     <td>
-                        <button class="btn btn-warning btn-small" onclick="editSermon(${s.id})">Edit</button>
-                        <button class="btn btn-danger btn-small" onclick="deleteSermon(${s.id})">Delete</button>
+                        <div class="action-btns">
+                            <button class="btn btn-warning btn-small" onclick="editSermon(${s.id})">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteSermon(${s.id})">Delete</button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -1357,12 +1624,14 @@
             document.getElementById('finance-tbody').innerHTML = finances.map(f => `
                 <tr>
                     <td>${f.date}</td>
-                    <td><span class="badge badge-${f.type === 'Income' ? 'active' : 'inactive'}">${f.type}</span></td>
+                    <td><span class="badge badge-${f.type === 'Income' ? 'active' : 'new'}">${f.type}</span></td>
                     <td>${f.description}</td>
                     <td style="color:${f.amount > 0 ? '#10b981' : '#ef4444'};font-weight:600">${f.amount > 0 ? '+' : ''}₵${Math.abs(f.amount).toFixed(2)}</td>
                     <td>
-                        <button class="btn btn-warning btn-small" onclick="editTransaction(${f.id})">Edit</button>
-                        <button class="btn btn-danger btn-small" onclick="deleteTransaction(${f.id})">Delete</button>
+                        <div class="action-btns">
+                            <button class="btn btn-warning btn-small" onclick="editTransaction(${f.id})">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteTransaction(${f.id})">Delete</button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -1413,7 +1682,7 @@
         }
 
         function deleteMeeting(id) {
-            if (!confirm('Delete this meeting notes?')) return;
+            if (!confirm('Delete?')) return;
             meetings = meetings.filter(m => m.id !== id);
             renderMeetings();
             showNotification('Deleted!');
@@ -1422,7 +1691,6 @@
         function viewMeetingNotes(id) {
             const meeting = meetings.find(m => m.id === id);
             if (!meeting) return;
-            
             alert(`Meeting: ${meeting.title}\nDate: ${meeting.date}\nType: ${meeting.type}\nAttendees: ${meeting.attendees}\n\nNotes:\n${meeting.notes}`);
         }
 
@@ -1434,9 +1702,11 @@
                     <td><span class="badge badge-active">${m.type}</span></td>
                     <td>${m.attendees}</td>
                     <td>
-                        <button class="btn btn-secondary btn-small" onclick="viewMeetingNotes(${m.id})">View</button>
-                        <button class="btn btn-warning btn-small" onclick="editMeeting(${m.id})">Edit</button>
-                        <button class="btn btn-danger btn-small" onclick="deleteMeeting(${m.id})">Delete</button>
+                        <div class="action-btns">
+                            <button class="btn btn-secondary btn-small" onclick="viewMeetingNotes(${m.id})">View</button>
+                            <button class="btn btn-warning btn-small" onclick="editMeeting(${m.id})">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteMeeting(${m.id})">Delete</button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
