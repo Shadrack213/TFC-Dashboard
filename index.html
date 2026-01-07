@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Management Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .login-container.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-logo {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .login-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+        }
+
+        .login-error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .login-error.active {
+            display: block;
+        }
+
+        .app-container {
+            display: none;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container.active {
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #1f2937;
+            color: white;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            color: #60a5fa;
+        }
+
+        .menu-item {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #374151;
+        }
+
+        .menu-item.active {
+            background: #2563eb;
+        }
+
+        .logout-btn {
+            margin-top: 2rem;
+            padding: 0.75rem 1rem;
+            background: #ef4444;
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.875rem;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            background: white;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar h1 {
+            font-size: 1.5rem;
+            color: #111827;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: #10b981;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem;
+            background: #f9fafb;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-new {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-returning {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .input, select, textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 2000;
+            display: none;
+            border-left: 4px solid #10b981;
+        }
+
+        .notification.active {
+            display: block;
+            animation: slideIn 0.3s;
+        }
+
+        .notification.error {
+            border-left-color: #ef4444;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <div class="login-logo">⛪</div>
+            <h2 class="login-title">Church Management System</h2>
+            <p class="login-subtitle">Sign in to continue</p>
+            <div id="login-error" class="login-error"></div>
+            <label class="label">Username</label>
+            <input type="text" class="input" id="login-username" placeholder="Enter username">
+            <label class="label">Password</label>
+            <input type="password" class="input" id="login-password" placeholder="Enter password">
+            <button class="btn" style="width: 100%;" onclick="handleLogin()">🔐 Sign In</button>
+            <p style="text-align:center;color:#6b7280;font-size:0.75rem;margin-top:1.5rem">Demo: admin / admin123</p>
+        </div>
+    </div>
+
+    <div id="notification" class="notification">
+        <span id="notification-text"></span>
+    </div>
+
+    <div id="app-container" class="app-container">
+        <div class="sidebar">
+            <div class="logo">⛪ ChurchOS</div>
+            <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
+            <div class="menu-item" onclick="showSection('members')">👥 Members</div>
+            <div class="menu-item" onclick="showSection('visitors')">🚶 Visitors</div>
+            <div class="menu-item" onclick="showSection('attendance')">📋 Attendance</div>
+            <div class="menu-item" onclick="showSection('events')">📅 Events</div>
+            <div class="menu-item" onclick="showSection('sermons')">🎤 Sermons</div>
+            <div class="menu-item" onclick="showSection('finance')">💰 Finance</div>
+            <div class="menu-item" onclick="showSection('meetings')">📝 Meeting Notes</div>
+            <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
+        </div>
+
+        <div class="main-content">
+            <div class="topbar">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="user-info">
+                    <span id="current-user">Admin</span>
+                    <div class="avatar">A</div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <section id="dashboard" class="section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#dbeafe;color:#2563eb">👥</div>
+                            <div class="stat-value" id="total-members">0</div>
+                            <div class="stat-label">Total Members</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#fef3c7;color:#f59e0b">🚶</div>
+                            <div class="stat-value" id="total-visitors">0</div>
+                            <div class="stat-label">Total Visitors</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#d1fae5;color:#10b981">📋</div>
+                            <div class="stat-value" id="latest-attendance">0</div>
+                            <div class="stat-label">Latest Attendance</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#fce7f3;color:#db2777">📅</div>
+                            <div class="stat-value" id="upcoming-events">0</div>
+                            <div class="stat-label">Upcoming Events</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Actions</h3>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0.75rem">
+                            <button class="btn" onclick="openAddModal('member')">➕ Add Member</button>
+                            <button class="btn btn-warning" onclick="openAddModal('visitor')">🚶 Add Visitor</button>
+                            <button class="btn btn-success" onclick="openAddModal('attendance')">✓ Record Attendance</button>
+                            <button class="btn btn-secondary" onclick="openAddModal('event')">📅 Create Event</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Activities</h3>
+                        </div>
+                        <div id="recent-activities"></div>
+                    </div>
+                </section>
+
+                <section id="members" class="section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="men-count">0</div>
+                            <div class="stat-label">MEN</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="women-count">0</div>
+                            <div class="stat-label">WOMEN</div>
+                            <p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem">Active Members</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="youth-count">0</div>
+                            <div class="stat-label">YOUTH</div>
+                            <p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem">Ages 13-25</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="children-count">0</div>
+                            <div class="stat-label">CHILDREN</div>
+                            <p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem">Ages 0-12</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card" style="max-width:300px;margin-bottom:1.5rem">
+                        <div class="stat-value" id="total-members-page">0</div>
+                        <div class="stat-label">TOTAL</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Church Members</h3>
+                            <button class="btn" onclick="openAddModal('member')">➕ Add Member</button>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr><th>NAME</th><th>GENDER</th><th>Email</th><th>NUMBER</th><th>STATUS</th><th>LOCATION</th><th>ACTIONS</th></tr>
+                            </thead>
+                            <tbody id="members-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="visitors" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Church Visitors</h3>
+                            <button class="btn btn-warning" onclick="openAddModal('visitor')">🚶 Add Visitor</button>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr><th>Name</th><th>Phone</th><th>Visit Date</th><th>Type</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="visitors-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="attendance" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Attendance Tracking</h3>
+                            <button class="btn btn-success" onclick="openAddModal('attendance')">✓ Record Attendance</button>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr><th>Date</th><th>Service</th><th>Attendance</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="attendance-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="events" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Church Events</h3>
+                            <button class="btn" onclick="openAddModal('event')">➕ Create Event</button>
+                        </div>
+                        <div id="events-list"></div>
+                    </div>
+                </section>
+
+                <section id="sermons" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Sermon Library</h3>
+                            <button class="btn" onclick="openAddModal('sermon')">➕ Upload Sermon</button>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr><th>Title</th><th>Speaker</th><th>Date</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="sermons-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="finance" class="section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#d1fae5;color:#10b981">💵</div>
+                            <div class="stat-value" id="finance-income">₵0</div>
+                            <div class="stat-label">Total Income</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#fef3c7;color:#d97706">💰</div>
+                            <div class="stat-value" id="finance-expenses">₵0</div>
+                            <div class="stat-label">Total Expenses</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Transactions</h3>
+                            <button class="btn" onclick="openAddModal('transaction')">➕ Add Transaction</button>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr><th>Date</th><th>Type</th><th>Description</th><th>Amount (GHS)</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="finance-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="meetings" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Meeting Notes</h3>
+                            <button class="btn" onclick="openAddModal('meeting')">➕ Add Meeting Notes</button>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr><th>Meeting Title</th><th>Date</th><th>Type</th><th>Attendees</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="meetings-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Modal -->
+    <div id="member-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="member-modal-title">Add New Member</h3>
+                <button class="close-btn" onclick="closeModal('member-modal')">×</button>
+            </div>
+            <input type="hidden" id="member-id">
+            <label class="label">Name</label>
+            <input type="text" class="input" id="member-name">
+            <label class="label">Gender</label>
+            <select class="input" id="member-gender">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+            <label class="label">Age Category</label>
+            <select class="input" id="member-age-category">
+                <option value="">Select Age Category</option>
+                <option value="Child">Child (0-12)</option>
+                <option value="Youth">Youth (13-25)</option>
+                <option value="Adult">Adult (26+)</option>
+            </select>
+            <label class="label">Email</label>
+            <input type="email" class="input" id="member-email">
+            <label class="label">Phone</label>
+            <input type="tel" class="input" id="member-phone">
+            <label class="label">Location</label>
+            <input type="text" class="input" id="member-location">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+                <button class="btn btn-secondary" onclick="closeModal('member-modal')">Cancel</button>
+                <button class="btn" onclick="saveMember()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visitor Modal -->
+    <div id="visitor-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="visitor-modal-title">Add New Visitor</h3>
+                <button class="close-btn" onclick="closeModal('visitor-modal')">×</button>
+            </div>
+            <input type="hidden" id="visitor-id">
+            <label class="label">Name</label>
+            <input type="text" class="input" id="visitor-name">
+            <label class="label">Phone</label>
+            <input type="tel" class="input" id="visitor-phone">
+            <label class="label">Visit Date</label>
+            <input type="date" class="input" id="visitor-date">
+            <label class="label">Visitor Type</label>
+            <select class="input" id="visitor-type">
+                <option>First Time</option>
+                <option>Returning</option>
+                <option>Guest</option>
+            </select>
+            <label class="label">Notes</label>
+            <textarea class="input" id="visitor-notes" rows="3"></textarea>
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+                <button class="btn btn-secondary" onclick="closeModal('visitor-modal')">Cancel</button>
+                <button class="btn btn-warning" onclick="saveVisitor()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div id="attendance-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="attendance-modal-title">Record Attendance</h3>
+                <button class="close-btn" onclick="closeModal('attendance-modal')">×</button>
+            </div>
+            <input type="hidden" id="attendance-id">
+            <label class="label">Date</label>
+            <input type="date" class="input" id="att-date">
+            <label class="label">Service Type</label>
+            <select class="input" id="att-service">
+                <option>Sunday Morning Service</option>
+                <option>Sunday Evening Service</option>
+                <option>Wednesday Service</option>
+            </select>
+            <label class="label">Total Attendance</label>
+            <input type="number" class="input" id="att-count">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+                <button class="btn btn-secondary" onclick="closeModal('attendance-modal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveAttendance()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="event-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="event-modal-title">Create Event</h3>
+                <button class="close-btn" onclick="closeModal('event-modal')">×</button>
+            </div>
+            <input type="hidden" id="event-id">
+            <label class="label">Event Title</label>
+            <input type="text" class="input" id="event-title">
+            <label class="label">Date</label>
+            <input type="date" class="input" id="event-date">
+            <label class="label">Location</label>
+            <input type="text" class="input" id="event-location">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+                <button class="btn btn-secondary" onclick="closeModal('event-modal')">Cancel</button>
+                <button class="btn" onclick="saveEvent()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sermon Modal -->
+    <div id="sermon-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="sermon-modal-title">Upload Sermon</h3>
+                <button class="close-btn" onclick="closeModal('sermon-modal')">×</button>
+            </div>
+            <input type="hidden" id="sermon-id">
+            <label class="label">Title</label>
+            <input type="text" class="input" id="sermon-title">
+            <label class="label">Speaker</label>
+            <input type="text" class="input" id="sermon-speaker">
+            <label class="label">Date</label>
+            <input type="date" class="input" id="sermon-date">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+                <button class="btn btn-secondary" onclick="closeModal('sermon-modal')">Cancel</button>
+                <button class="btn" onclick="saveSermon()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div id="transaction-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="transaction-modal-title">Add Transaction</h3>
+                <button class="close-btn" onclick="closeModal('transaction-modal')">×</button>
+            </div>
+            <input type="hidden" id="trans-id">
+            <label class="label">Date</label>
+            <input type="date" class="input" id="trans-date">
+            <label class="label">Type</label>
+            <select class="input" id="trans-type">
+                <option>Income</option>
+                <option>Expense</option>
+            </select>
+            <label class="label">Description</label>
+            <input type="text" class="input" id="trans-description">
+            <label class="label">Amount (GHS ₵)</label>
+            <input type="number" class="input" id="trans-amount" step="0.01">
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+                <button class="btn btn-secondary" onclick="closeModal('transaction-modal')">Cancel</button>
+                <button class="btn" onclick="saveTransaction()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meeting Notes Modal -->
+    <div id="meeting-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="meeting-modal-title">Add Meeting Notes</h3>
+                <button class="close-btn" onclick="closeModal('meeting-modal')">×</button>
+            </div>
+            <input type="hidden" id="meeting-id">
+            <label class="label">Meeting Title</label>
+            <input type="text" class="input" id="meeting-title" placeholder="e.g., Board Meeting, Staff Meeting">
+            <label class="label">Meeting Date</label>
+            <input type="date" class="input" id="meeting-date">
+            <label class="label">Meeting Type</label>
+            <select class="input" id="meeting-type">
+                <option>Board Meeting</option>
+                <option>Staff Meeting</option>
+                <option>Leadership Meeting</option>
+                <option>Planning Meeting</option>
+                <option>Prayer Meeting</option>
+                <option>Other</option>
+            </select>
+            <label class="label">Attendees</label>
+            <input type="text" class="input" id="meeting-attendees" placeholder="Names of attendees (comma separated)">
+            <label class="label">Meeting Notes/Minutes</label>
+            <textarea class="input" id="meeting-notes" rows="6" placeholder="Enter meeting notes, decisions, action items..."></textarea>
+            <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+                <button class="btn btn-secondary" onclick="closeModal('meeting-modal')">Cancel</button>
+                <button class="btn" onclick="saveMeeting()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        const validUsers = { 'admin': 'admin123', 'pastor': 'pastor123' };
+        
+        let members = [
+            { id: 1, name: 'John Smith', email: 'john@example.com', phone: '0244123456', gender: 'Male', ageCategory: 'Adult', location: 'Accra', status: 'Active' },
+            { id: 2, name: 'Mary Asante', email: 'mary@example.com', phone: '0551234567', gender: 'Female', ageCategory: 'Adult', location: 'Kumasi', status: 'Active' },
+            { id: 3, name: 'Kwame Mensah', email: 'kwame@example.com', phone: '0201234567', gender: 'Male', ageCategory: 'Youth', location: 'Accra', status: 'Active' }
+        ];
+        let visitors = [
+            { id: 1, name: 'Mary Agyeman', phone: '0551234567', visitDate: '2026-01-05', type: 'First Time', notes: 'Invited by Sarah' }
+        ];
+        let attendance = [{ id: 1, date: '2026-01-05', service: 'Sunday Morning', count: 156 }];
+        let sermons = [{ id: 1, title: 'Walking in Faith', speaker: 'Pastor James', date: '2026-01-05' }];
+        let events = [{ id: 1, title: 'Bible Study', date: '2026-01-08', location: 'Fellowship Hall' }];
+        let finances = [
+            { id: 1, date: '2026-01-05', type: 'Income', description: 'Sunday Offerings', amount: 4280 },
+            { id: 2, date: '2026-01-04', type: 'Expense', description: 'Utility Bills', amount: -850 }
+        ];
+        let meetings = [
+            { id: 1, title: 'Board Meeting - January', date: '2026-01-03', type: 'Board Meeting', attendees: 'Pastor James, Elder John, Sister Mary', notes: 'Discussed budget for 2026. Approved new outreach program. Need to follow up on building repairs.' }
+        ];
+        let activities = [];
+
+        function handleLogin() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const errorDiv = document.getElementById('login-error');
+            
+            if (!username || !password) {
+                errorDiv.textContent = 'Please enter username and password';
+                errorDiv.classList.add('active');
+                return;
+            }
+            
+            if (validUsers[username] && validUsers[username] === password) {
+                currentUser = username;
+                document.getElementById('current-user').textContent = username.charAt(0).toUpperCase() + username.slice(1);
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.add('active');
+                showNotification(`Welcome, ${username}!`);
+                addActivity(`${username} logged in`, '🔐');
+            } else {
+                errorDiv.textContent = 'Invalid credentials';
+                errorDiv.classList.add('active');
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Logout?')) {
+                currentUser = null;
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('app-container').classList.remove('active');
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+            }
+        }
+
+        document.getElementById('login-password').addEventListener('keypress', e => {
+            if (e.key === 'Enter') handleLogin();
+        });
+
+        function showNotification(msg, type = 'success') {
+            const n = document.getElementById('notification');
+            document.getElementById('notification-text').textContent = msg;
+            n.className = `notification ${type} active`;
+            setTimeout(() => n.classList.remove('active'), 3000);
+        }
+
+        function addActivity(text, icon = '✓') {
+            activities.unshift({ text, icon, time: 'Just now' });
+            if (activities.length > 5) activities.pop();
+            renderActivities();
+        }
+
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.target.classList.add('active');
+            const titles = { dashboard: 'Dashboard', members: 'Members', visitors: 'Visitors', attendance: 'Attendance', events: 'Events', sermons: 'Sermons', finance: 'Finance', meetings: 'Meeting Notes' };
+            document.getElementById('page-title').textContent = titles[id];
+        }
+
+        function openAddModal(type) {
+            const modalId = type + '-modal';
+            const titleMap = {
+                member: 'Add New Member',
+                visitor: 'Add New Visitor',
+                attendance: 'Record Attendance',
+                event: 'Create Event',
+                sermon: 'Upload Sermon',
+                transaction: 'Add Transaction',
+                meeting: 'Add Meeting Notes'
+            };
+            
+            document.getElementById(type + '-modal-title').textContent = titleMap[type];
+            
+            // Clear form
+            document.querySelectorAll(`#${modalId} input, #${modalId} select, #${modalId} textarea`).forEach(el => {
+                if (el.type === 'hidden') return;
+                el.value = '';
+            });
+            
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // MEMBERS
+        function editMember(id) {
+            const member = members.find(m => m.id === id);
+            if (!member) return;
+            
+            document.getElementById('member-modal-title').textContent = 'Edit Member';
+            document.getElementById('member-id').value = member.id;
+            document.getElementById('member-name').value = member.name;
+            document.getElementById('member-gender').value = member.gender || '';
+            document.getElementById('member-age-category').value = member.ageCategory || '';
+            document.getElementById('member-email').value = member.email;
+            document.getElementById('member-phone').value = member.phone;
+            document.getElementById('member-location').value = member.location || '';
+            document.getElementById('member-modal').classList.add('active');
+        }
+
+        function saveMember() {
+            const id = document.getElementById('member-id').value;
+            const name = document.getElementById('member-name').value;
+            const gender = document.getElementById('member-gender').value;
+            const ageCategory = document.getElementById('member-age-category').value;
+            const email = document.getElementById('member-email').value;
+            const phone = document.getElementById('member-phone').value;
+            const location = document.getElementById('member-location').value;
+            
+            if (!name || !gender || !ageCategory || !email || !phone || !location) {
+                return showNotification('Fill all fields', 'error');
+            }
+            
+            if (id) {
+                const member = members.find(m => m.id == id);
+                member.name = name;
+                member.gender = gender;
+                member.ageCategory = ageCategory;
+                member.email = email;
+                member.phone = phone;
+                member.location = location;
+                addActivity(`Member ${name} updated`, '✏️');
+                showNotification('Member updated!');
+            } else {
+                members.push({ id: Date.now(), name, gender, ageCategory, email, phone, location, status: 'Active' });
+                addActivity(`Member ${name} added`, '👥');
+                showNotification('Member added!');
+            }
+            
+            renderMembers();
+            updateDashboard();
+            closeModal('member-modal');
+        }
+
+        function deleteMember(id) {
+            if (!confirm('Delete?')) return;
+            members = members.filter(m => m.id !== id);
+            renderMembers();
+            updateDashboard();
+            showNotification('Deleted!');
+        }
+
+        function renderMembers() {
+            document.getElementById('members-tbody').innerHTML = members.map(m => `
+                <tr>
+                    <td>${m.name}</td>
+                    <td>${m.gender}</td>
+                    <td>${m.email}</td>
+                    <td>${m.phone}</td>
+                    <td><span class="badge badge-active">${m.status}</span></td>
+                    <td>${m.location}</td>
+                    <td>
+                        <button class="btn btn-warning btn-small" onclick="editMember(${m.id})">Edit</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteMember(${m.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Update member statistics
+            const menCount = members.filter(m => m.gender === 'Male' && m.ageCategory === 'Adult').length;
+            const womenCount = members.filter(m => m.gender === 'Female' && m.ageCategory === 'Adult').length;
+            const youthCount = members.filter(m => m.ageCategory === 'Youth').length;
+            const childrenCount = members.filter(m => m.ageCategory === 'Child').length;
+            
+            document.getElementById('men-count').textContent = menCount;
+            document.getElementById('women-count').textContent = womenCount;
+            document.getElementById('youth-count').textContent = youthCount;
+            document.getElementById('children-count').textContent = childrenCount;
+            document.getElementById('total-members-page').textContent = members.length;
+        }
+
+        // VISITORS
+        function editVisitor(id) {
+            const visitor = visitors.find(v => v.id === id);
+            if (!visitor) return;
+            
+            document.getElementById('visitor-modal-title').textContent = 'Edit Visitor';
+            document.getElementById('visitor-id').value = visitor.id;
+            document.getElementById('visitor-name').value = visitor.name;
+            document.getElementById('visitor-phone').value = visitor.phone;
+            document.getElementById('visitor-date').value = visitor.visitDate;
+            document.getElementById('visitor-type').value = visitor.type;
+            document.getElementById('visitor-notes').value = visitor.notes;
+            document.getElementById('visitor-modal').classList.add('active');
+        }
+
+        function saveVisitor() {
+            const id = document.getElementById('visitor-id').value;
+            const name = document.getElementById('visitor-name').value;
+            const phone = document.getElementById('visitor-phone').value;
+            const visitDate = document.getElementById('visitor-date').value;
+            const type = document.getElementById('visitor-type').value;
+            const notes = document.getElementById('visitor-notes').value;
+            
+            if (!name || !phone || !visitDate) return showNotification('Fill required fields', 'error');
+            
+            if (id) {
+                const visitor = visitors.find(v => v.id == id);
+                visitor.name = name;
+                visitor.phone = phone;
+                visitor.visitDate = visitDate;
+                visitor.type = type;
+                visitor.notes = notes;
+                addActivity(`Visitor ${name} updated`, '✏️');
+                showNotification('Visitor updated!');
+            } else {
+                visitors.push({ id: Date.now(), name, phone, visitDate, type, notes });
+                addActivity(`Visitor ${name} added`, '🚶');
+                showNotification('Visitor added!');
+            }
+            
+            renderVisitors();
+            updateDashboard();
+            closeModal('visitor-modal');
+        }
+
+        function deleteVisitor(id) {
+            if (!confirm('Delete?')) return;
+            visitors = visitors.filter(v => v.id !== id);
+            renderVisitors();
+            updateDashboard();
+            showNotification('Deleted!');
+        }
+
+        function renderVisitors() {
+            document.getElementById('visitors-tbody').innerHTML = visitors.map(v => `
+                <tr>
+                    <td>${v.name}</td>
+                    <td>${v.phone}</td>
+                    <td>${v.visitDate}</td>
+                    <td><span class="badge badge-${v.type === 'First Time' ? 'new' : 'returning'}">${v.type}</span></td>
+                    <td>
+                        <button class="btn btn-warning btn-small" onclick="editVisitor(${v.id})">Edit</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteVisitor(${v.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ATTENDANCE
+        function editAttendance(id) {
+            const att = attendance.find(a => a.id === id);
+            if (!att) return;
+            
+            document.getElementById('attendance-modal-title').textContent = 'Edit Attendance';
+            document.getElementById('attendance-id').value = att.id;
+            document.getElementById('att-date').value = att.date;
+            document.getElementById('att-service').value = att.service;
+            document.getElementById('att-count').value = att.count;
+            document.getElementById('attendance-modal').classList.add('active');
+        }
+
+        function saveAttendance() {
+            const id = document.getElementById('attendance-id').value;
+            const date = document.getElementById('att-date').value;
+            const service = document.getElementById('att-service').value;
+            const count = parseInt(document.getElementById('att-count').value);
+            
+            if (!date || !count) return showNotification('Fill all fields', 'error');
+            
+            if (id) {
+                const att = attendance.find(a => a.id == id);
+                att.date = date;
+                att.service = service;
+                att.count = count;
+                addActivity(`Attendance updated`, '✏️');
+                showNotification('Attendance updated!');
+            } else {
+                attendance.unshift({ id: Date.now(), date, service, count });
+                addActivity(`Attendance: ${count} people`, '📋');
+                showNotification('Recorded!');
+            }
+            
+            renderAttendance();
+            updateDashboard();
+            closeModal('attendance-modal');
+        }
+
+        function deleteAttendance(id) {
+            if (!confirm('Delete?')) return;
+            attendance = attendance.filter(a => a.id !== id);
+            renderAttendance();
+            updateDashboard();
+            showNotification('Deleted!');
+        }
+
+        function renderAttendance() {
+            document.getElementById('attendance-tbody').innerHTML = attendance.map(a => `
+                <tr>
+                    <td>${a.date}</td>
+                    <td>${a.service}</td>
+                    <td>${a.count}</td>
+                    <td>
+                        <button class="btn btn-warning btn-small" onclick="editAttendance(${a.id})">Edit</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteAttendance(${a.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // EVENTS
+        function editEvent(id) {
+            const event = events.find(e => e.id === id);
+            if (!event) return;
+            
+            document.getElementById('event-modal-title').textContent = 'Edit Event';
+            document.getElementById('event-id').value = event.id;
+            document.getElementById('event-title').value = event.title;
+            document.getElementById('event-date').value = event.date;
+            document.getElementById('event-location').value = event.location;
+            document.getElementById('event-modal').classList.add('active');
+        }
+
+        function saveEvent() {
+            const id = document.getElementById('event-id').value;
+            const title = document.getElementById('event-title').value;
+            const date = document.getElementById('event-date').value;
+            const location = document.getElementById('event-location').value;
+            
+            if (!title || !date || !location) return showNotification('Fill all fields', 'error');
+            
+            if (id) {
+                const event = events.find(e => e.id == id);
+                event.title = title;
+                event.date = date;
+                event.location = location;
+                addActivity(`Event "${title}" updated`, '✏️');
+                showNotification('Event updated!');
+            } else {
+                events.push({ id: Date.now(), title, date, location });
+                addActivity(`Event "${title}" created`, '📅');
+                showNotification('Created!');
+            }
+            
+            renderEvents();
+            updateDashboard();
+            closeModal('event-modal');
+        }
+
+        function deleteEvent(id) {
+            if (!confirm('Delete?')) return;
+            events = events.filter(e => e.id !== id);
+            renderEvents();
+            updateDashboard();
+            showNotification('Deleted!');
+        }
+
+        function renderEvents() {
+            document.getElementById('events-list').innerHTML = events.map(e => `
+                <div class="card" style="margin-bottom:1rem">
+                    <h4>${e.title}</h4>
+                    <p style="color:#6b7280;font-size:0.875rem">📅 ${e.date} • 📍 ${e.location}</p>
+                    <div style="margin-top:0.5rem">
+                        <button class="btn btn-warning btn-small" onclick="editEvent(${e.id})">Edit</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteEvent(${e.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // SERMONS
+        function editSermon(id) {
+            const sermon = sermons.find(s => s.id === id);
+            if (!sermon) return;
+            
+            document.getElementById('sermon-modal-title').textContent = 'Edit Sermon';
+            document.getElementById('sermon-id').value = sermon.id;
+            document.getElementById('sermon-title').value = sermon.title;
+            document.getElementById('sermon-speaker').value = sermon.speaker;
+            document.getElementById('sermon-date').value = sermon.date;
+            document.getElementById('sermon-modal').classList.add('active');
+        }
+
+        function saveSermon() {
+            const id = document.getElementById('sermon-id').value;
+            const title = document.getElementById('sermon-title').value;
+            const speaker = document.getElementById('sermon-speaker').value;
+            const date = document.getElementById('sermon-date').value;
+            
+            if (!title || !speaker || !date) return showNotification('Fill all fields', 'error');
+            
+            if (id) {
+                const sermon = sermons.find(s => s.id == id);
+                sermon.title = title;
+                sermon.speaker = speaker;
+                sermon.date = date;
+                addActivity(`Sermon "${title}" updated`, '✏️');
+                showNotification('Sermon updated!');
+            } else {
+                sermons.unshift({ id: Date.now(), title, speaker, date });
+                addActivity(`Sermon "${title}" uploaded`, '🎤');
+                showNotification('Uploaded!');
+            }
+            
+            renderSermons();
+            closeModal('sermon-modal');
+        }
+
+        function deleteSermon(id) {
+            if (!confirm('Delete?')) return;
+            sermons = sermons.filter(s => s.id !== id);
+            renderSermons();
+            showNotification('Deleted!');
+        }
+
+        function renderSermons() {
+            document.getElementById('sermons-tbody').innerHTML = sermons.map(s => `
+                <tr>
+                    <td>${s.title}</td>
+                    <td>${s.speaker}</td>
+                    <td>${s.date}</td>
+                    <td>
+                        <button class="btn btn-warning btn-small" onclick="editSermon(${s.id})">Edit</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteSermon(${s.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // TRANSACTIONS
+        function editTransaction(id) {
+            const trans = finances.find(f => f.id === id);
+            if (!trans) return;
+            
+            document.getElementById('transaction-modal-title').textContent = 'Edit Transaction';
+            document.getElementById('trans-id').value = trans.id;
+            document.getElementById('trans-date').value = trans.date;
+            document.getElementById('trans-type').value = trans.type;
+            document.getElementById('trans-description').value = trans.description;
+            document.getElementById('trans-amount').value = Math.abs(trans.amount);
+            document.getElementById('transaction-modal').classList.add('active');
+        }
+
+        function saveTransaction() {
+            const id = document.getElementById('trans-id').value;
+            const date = document.getElementById('trans-date').value;
+            const type = document.getElementById('trans-type').value;
+            const description = document.getElementById('trans-description').value;
+            const amount = parseFloat(document.getElementById('trans-amount').value);
+            
+            if (!date || !description || !amount) return showNotification('Fill all fields', 'error');
+            
+            const finalAmount = type === 'Income' ? amount : -amount;
+            
+            if (id) {
+                const trans = finances.find(f => f.id == id);
+                trans.date = date;
+                trans.type = type;
+                trans.description = description;
+                trans.amount = finalAmount;
+                addActivity(`Transaction updated`, '✏️');
+                showNotification('Transaction updated!');
+            } else {
+                finances.unshift({ id: Date.now(), date, type, description, amount: finalAmount });
+                addActivity(`Transaction: ₵${amount}`, '💰');
+                showNotification('Added!');
+            }
+            
+            renderFinances();
+            updateDashboard();
+            closeModal('transaction-modal');
+        }
+
+        function deleteTransaction(id) {
+            if (!confirm('Delete?')) return;
+            finances = finances.filter(f => f.id !== id);
+            renderFinances();
+            updateDashboard();
+            showNotification('Deleted!');
+        }
+
+        function renderFinances() {
+            document.getElementById('finance-tbody').innerHTML = finances.map(f => `
+                <tr>
+                    <td>${f.date}</td>
+                    <td><span class="badge badge-${f.type === 'Income' ? 'active' : 'inactive'}">${f.type}</span></td>
+                    <td>${f.description}</td>
+                    <td style="color:${f.amount > 0 ? '#10b981' : '#ef4444'};font-weight:600">${f.amount > 0 ? '+' : ''}₵${Math.abs(f.amount).toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-warning btn-small" onclick="editTransaction(${f.id})">Edit</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteTransaction(${f.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // MEETINGS
+        function editMeeting(id) {
+            const meeting = meetings.find(m => m.id === id);
+            if (!meeting) return;
+            
+            document.getElementById('meeting-modal-title').textContent = 'Edit Meeting Notes';
+            document.getElementById('meeting-id').value = meeting.id;
+            document.getElementById('meeting-title').value = meeting.title;
+            document.getElementById('meeting-date').value = meeting.date;
+            document.getElementById('meeting-type').value = meeting.type;
+            document.getElementById('meeting-attendees').value = meeting.attendees;
+            document.getElementById('meeting-notes').value = meeting.notes;
+            document.getElementById('meeting-modal').classList.add('active');
+        }
+
+        function saveMeeting() {
+            const id = document.getElementById('meeting-id').value;
+            const title = document.getElementById('meeting-title').value;
+            const date = document.getElementById('meeting-date').value;
+            const type = document.getElementById('meeting-type').value;
+            const attendees = document.getElementById('meeting-attendees').value;
+            const notes = document.getElementById('meeting-notes').value;
+            
+            if (!title || !date || !notes) return showNotification('Fill required fields', 'error');
+            
+            if (id) {
+                const meeting = meetings.find(m => m.id == id);
+                meeting.title = title;
+                meeting.date = date;
+                meeting.type = type;
+                meeting.attendees = attendees;
+                meeting.notes = notes;
+                addActivity(`Meeting "${title}" updated`, '✏️');
+                showNotification('Meeting notes updated!');
+            } else {
+                meetings.unshift({ id: Date.now(), title, date, type, attendees, notes });
+                addActivity(`Meeting notes "${title}" added`, '📝');
+                showNotification('Meeting notes added!');
+            }
+            
+            renderMeetings();
+            closeModal('meeting-modal');
+        }
+
+        function deleteMeeting(id) {
+            if (!confirm('Delete this meeting notes?')) return;
+            meetings = meetings.filter(m => m.id !== id);
+            renderMeetings();
+            showNotification('Deleted!');
+        }
+
+        function viewMeetingNotes(id) {
+            const meeting = meetings.find(m => m.id === id);
+            if (!meeting) return;
+            
+            alert(`Meeting: ${meeting.title}\nDate: ${meeting.date}\nType: ${meeting.type}\nAttendees: ${meeting.attendees}\n\nNotes:\n${meeting.notes}`);
+        }
+
+        function renderMeetings() {
+            document.getElementById('meetings-tbody').innerHTML = meetings.map(m => `
+                <tr>
+                    <td>${m.title}</td>
+                    <td>${m.date}</td>
+                    <td><span class="badge badge-active">${m.type}</span></td>
+                    <td>${m.attendees}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-small" onclick="viewMeetingNotes(${m.id})">View</button>
+                        <button class="btn btn-warning btn-small" onclick="editMeeting(${m.id})">Edit</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteMeeting(${m.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderActivities() {
+            document.getElementById('recent-activities').innerHTML = activities.length ? activities.map(a => `
+                <div style="display:flex;gap:1rem;padding:1rem;border-bottom:1px solid #e5e7eb">
+                    <span style="font-size:1.5rem">${a.icon}</span>
+                    <div><p style="font-size:0.875rem">${a.text}</p><p style="font-size:0.75rem;color:#9ca3af">${a.time}</p></div>
+                </div>
+            `).join('') : '<p style="padding:1rem;color:#6b7280">No activities yet</p>';
+        }
+
+        function updateDashboard() {
+            document.getElementById('total-members').textContent = members.length;
+            document.getElementById('total-visitors').textContent = visitors.length;
+            document.getElementById('latest-attendance').textContent = attendance.length ? attendance[0].count : 0;
+            document.getElementById('upcoming-events').textContent = events.length;
+            const income = finances.filter(f => f.amount > 0).reduce((sum, f) => sum + f.amount, 0);
+            const expenses = Math.abs(finances.filter(f => f.amount < 0).reduce((sum, f) => sum + f.amount, 0));
+            document.getElementById('finance-income').textContent = '₵' + income.toFixed(2);
+            document.getElementById('finance-expenses').textContent = '₵' + expenses.toFixed(2);
+        }
+
+        renderMembers();
+        renderVisitors();
+        renderAttendance();
+        renderSermons();
+        renderEvents();
+        renderFinances();
+        renderMeetings();
+        renderActivities();
+        updateDashboard();
+    </script>
+</body>
+</html>
