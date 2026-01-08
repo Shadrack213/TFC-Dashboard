@@ -512,6 +512,20 @@
             margin-bottom: 0.5rem;
         }
 
+        /* Report Cards */
+        .report-card {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .report-card:hover {
+            background: #f3f4f6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
         /* Action Buttons Container */
         .action-btns {
             display: flex;
@@ -698,6 +712,7 @@
             <div class="menu-item" onclick="showSection('events')">📅 Events</div>
             <div class="menu-item" onclick="showSection('sermons')">🎤 Sermons</div>
             <div class="menu-item" onclick="showSection('finance')">💰 Finance</div>
+            <div class="menu-item" onclick="showSection('reports')">📊 Reports</div>
             <div class="menu-item" onclick="showSection('meetings')">📝 Meeting Notes</div>
             <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
         </div>
@@ -887,6 +902,83 @@
                                     <tr><th>Date</th><th>Type</th><th>Description</th><th>Amount (GHS)</th><th>Actions</th></tr>
                                 </thead>
                                 <tbody id="finance-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reports -->
+                <section id="reports" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Church Reports Dashboard</h3>
+                            <button class="btn" onclick="exportAllReports()">📥 Export All</button>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stats -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#dbeafe;color:#2563eb">👥</div>
+                            <div class="stat-value" id="report-total-members">0</div>
+                            <div class="stat-label">Total Members</div>
+                            <p style="color:#10b981;font-size:0.75rem;margin-top:0.5rem" id="member-growth">+0% this month</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#d1fae5;color:#10b981">📋</div>
+                            <div class="stat-value" id="report-avg-attendance">0</div>
+                            <div class="stat-label">Avg Attendance</div>
+                            <p style="color:#10b981;font-size:0.75rem;margin-top:0.5rem">Last 4 weeks</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#fef3c7;color:#d97706">💰</div>
+                            <div class="stat-value" id="report-total-income">₵0</div>
+                            <div class="stat-label">Total Income (MTD)</div>
+                            <p style="color:#10b981;font-size:0.75rem;margin-top:0.5rem" id="income-growth">+0% vs last month</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#fce7f3;color:#db2777">🚶</div>
+                            <div class="stat-value" id="report-visitors">0</div>
+                            <div class="stat-label">Total Visitors</div>
+                            <p style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem">All time</p>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;margin-bottom:1.5rem">
+                        <!-- Attendance Trend Chart -->
+                        <div class="card">
+                            <h4 style="margin-bottom:1rem">📈 Attendance Trend</h4>
+                            <canvas id="attendanceChart" style="max-height:250px"></canvas>
+                        </div>
+
+                        <!-- Finance Overview Chart -->
+                        <div class="card">
+                            <h4 style="margin-bottom:1rem">💵 Income vs Expenses</h4>
+                            <canvas id="financeChart" style="max-height:250px"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Reports -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Generate Reports</h3>
+                        </div>
+                        <div id="report-cards-container" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem">
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Summary -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Activity Summary</h3>
+                        </div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr><th>Category</th><th>This Week</th><th>Last Week</th><th>Change</th></tr>
+                                </thead>
+                                <tbody id="activity-summary"></tbody>
                             </table>
                         </div>
                     </div>
@@ -1190,12 +1282,17 @@
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             event.target.classList.add('active');
-            const titles = { dashboard: 'Dashboard', members: 'Members', visitors: 'Visitors', attendance: 'Attendance', events: 'Events', sermons: 'Sermons', finance: 'Finance', meetings: 'Meeting Notes' };
+            const titles = { dashboard: 'Dashboard', members: 'Members', visitors: 'Visitors', attendance: 'Attendance', events: 'Events', sermons: 'Sermons', finance: 'Finance', reports: 'Reports', meetings: 'Meeting Notes' };
             document.getElementById('page-title').textContent = titles[id];
             
             // Close mobile menu on mobile
             if (window.innerWidth <= 768) {
                 toggleMobileMenu();
+            }
+            
+            // Render reports when reports section is shown
+            if (id === 'reports') {
+                setTimeout(renderReportsDashboard, 100);
             }
         }
 
@@ -1732,6 +1829,224 @@
             document.getElementById('finance-expenses').textContent = '₵' + expenses.toFixed(2);
         }
 
+        // REPORTS FUNCTIONS
+        function generateReport(type) {
+            const reportData = {
+                members: {
+                    title: 'Members Report',
+                    data: members,
+                    summary: `Total Members: ${members.length}\nMale: ${members.filter(m => m.gender === 'Male').length}\nFemale: ${members.filter(m => m.gender === 'Female').length}`
+                },
+                attendance: {
+                    title: 'Attendance Report',
+                    data: attendance,
+                    summary: `Total Records: ${attendance.length}\nAverage Attendance: ${Math.round(attendance.reduce((sum, a) => sum + a.count, 0) / attendance.length)}`
+                },
+                finance: {
+                    title: 'Finance Report',
+                    data: finances,
+                    summary: `Total Transactions: ${finances.length}\nIncome: ₵${finances.filter(f => f.amount > 0).reduce((sum, f) => sum + f.amount, 0).toFixed(2)}\nExpenses: ₵${Math.abs(finances.filter(f => f.amount < 0).reduce((sum, f) => sum + f.amount, 0)).toFixed(2)}`
+                },
+                visitors: {
+                    title: 'Visitors Report',
+                    data: visitors,
+                    summary: `Total Visitors: ${visitors.length}\nFirst Time: ${visitors.filter(v => v.type === 'First Time').length}\nReturning: ${visitors.filter(v => v.type === 'Returning').length}`
+                },
+                events: {
+                    title: 'Events Report',
+                    data: events,
+                    summary: `Total Events: ${events.length}\nUpcoming: ${events.length}`
+                },
+                sermons: {
+                    title: 'Sermons Report',
+                    data: sermons,
+                    summary: `Total Sermons: ${sermons.length}\nSpeakers: ${[...new Set(sermons.map(s => s.speaker))].length}`
+                }
+            };
+
+            const report = reportData[type];
+            showNotification(`Generating ${report.title}...`);
+            
+            // Simulate PDF generation
+            setTimeout(() => {
+                alert(`${report.title}\n\n${report.summary}\n\nReport generated successfully!\n\nNote: In production, this would download a PDF file.`);
+                addActivity(`Generated ${report.title}`, '📊');
+            }, 500);
+        }
+
+        function exportAllReports() {
+            showNotification('Exporting all reports...');
+            setTimeout(() => {
+                alert('All Reports Export\n\nThe following reports have been generated:\n\n✓ Members Report\n✓ Attendance Report\n✓ Finance Report\n✓ Visitors Report\n✓ Events Report\n✓ Sermons Report\n\nNote: In production, these would be downloaded as PDF files.');
+                addActivity('Exported all reports', '📥');
+            }, 1000);
+        }
+
+        function renderReportsDashboard() {
+            // Update report stats
+            document.getElementById('report-total-members').textContent = members.length;
+            document.getElementById('report-visitors').textContent = visitors.length;
+            
+            // Calculate average attendance
+            const avgAttendance = attendance.length ? Math.round(attendance.reduce((sum, a) => sum + a.count, 0) / attendance.length) : 0;
+            document.getElementById('report-avg-attendance').textContent = avgAttendance;
+            
+            // Calculate total income
+            const income = finances.filter(f => f.amount > 0).reduce((sum, f) => sum + f.amount, 0);
+            document.getElementById('report-total-income').textContent = '₵' + income.toFixed(2);
+            
+            // Render report cards
+            renderReportCards();
+            
+            // Render charts
+            renderAttendanceChart();
+            renderFinanceChart();
+            renderActivitySummary();
+        }
+
+        function renderReportCards() {
+            const reportCards = [
+                { type: 'members', icon: '👥', bg: '#dbeafe', title: 'Members Report', count: `${members.length} total members` },
+                { type: 'attendance', icon: '📋', bg: '#d1fae5', title: 'Attendance Report', count: `${attendance.length} records` },
+                { type: 'finance', icon: '💰', bg: '#fef3c7', title: 'Finance Report', count: `${finances.length} transactions` },
+                { type: 'visitors', icon: '🚶', bg: '#fce7f3', title: 'Visitors Report', count: `${visitors.length} visitors` },
+                { type: 'events', icon: '📅', bg: '#e0e7ff', title: 'Events Report', count: `${events.length} events` },
+                { type: 'sermons', icon: '🎤', bg: '#fce7f3', title: 'Sermons Report', count: `${sermons.length} sermons` }
+            ];
+
+            document.getElementById('report-cards-container').innerHTML = reportCards.map(card => `
+                <div class="report-card" onclick="generateReport('${card.type}')">
+                    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem">
+                        <div style="width:48px;height:48px;background:${card.bg};border-radius:0.5rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem">${card.icon}</div>
+                        <div>
+                            <h4 style="font-size:1rem">${card.title}</h4>
+                            <p style="color:#6b7280;font-size:0.75rem">${card.count}</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-small" style="width:100%">Generate PDF</button>
+                </div>
+            `).join('');
+        }
+
+        function renderAttendanceChart() {
+            const canvas = document.getElementById('attendanceChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 250;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Simple bar chart for attendance
+            const data = attendance.slice(0, 5).reverse();
+            const maxCount = Math.max(...data.map(a => a.count), 100);
+            const barWidth = (canvas.width - 60) / data.length;
+            const chartHeight = canvas.height - 60;
+            
+            // Draw bars
+            data.forEach((a, i) => {
+                const barHeight = (a.count / maxCount) * chartHeight;
+                const x = 40 + (i * barWidth);
+                const y = canvas.height - 40 - barHeight;
+                
+                // Bar
+                ctx.fillStyle = '#3b82f6';
+                ctx.fillRect(x, y, barWidth - 10, barHeight);
+                
+                // Label
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(a.date.split('-')[2], x + (barWidth - 10) / 2, canvas.height - 20);
+                ctx.fillText(a.count, x + (barWidth - 10) / 2, y - 5);
+            });
+            
+            // Y-axis
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.beginPath();
+            ctx.moveTo(35, 20);
+            ctx.lineTo(35, canvas.height - 35);
+            ctx.stroke();
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(35, canvas.height - 35);
+            ctx.lineTo(canvas.width - 10, canvas.height - 35);
+            ctx.stroke();
+        }
+
+        function renderFinanceChart() {
+            const canvas = document.getElementById('financeChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 250;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate income and expenses
+            const income = finances.filter(f => f.amount > 0).reduce((sum, f) => sum + f.amount, 0);
+            const expenses = Math.abs(finances.filter(f => f.amount < 0).reduce((sum, f) => sum + f.amount, 0));
+            
+            // Draw simple donut chart
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 40;
+            const total = income + expenses;
+            
+            if (total > 0) {
+                // Income arc
+                const incomeAngle = (income / total) * 2 * Math.PI;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + incomeAngle);
+                ctx.lineWidth = 40;
+                ctx.strokeStyle = '#10b981';
+                ctx.stroke();
+                
+                // Expenses arc
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, -Math.PI / 2 + incomeAngle, -Math.PI / 2 + 2 * Math.PI);
+                ctx.strokeStyle = '#ef4444';
+                ctx.stroke();
+                
+                // Center text
+                ctx.fillStyle = '#1f2937';
+                ctx.font = 'bold 20px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('₵' + total.toFixed(0), centerX, centerY);
+                
+                // Legend
+                ctx.font = '12px sans-serif';
+                ctx.fillStyle = '#10b981';
+                ctx.fillText('● Income: ₵' + income.toFixed(0), centerX, centerY + 50);
+                ctx.fillStyle = '#ef4444';
+                ctx.fillText('● Expenses: ₵' + expenses.toFixed(0), centerX, centerY + 70);
+            }
+        }
+
+        function renderActivitySummary() {
+            const summary = [
+                { category: 'New Members', thisWeek: 2, lastWeek: 1, change: '+100%' },
+                { category: 'Attendance', thisWeek: 156, lastWeek: 145, change: '+7.6%' },
+                { category: 'Visitors', thisWeek: 3, lastWeek: 5, change: '-40%' },
+                { category: 'Events', thisWeek: 2, lastWeek: 2, change: '0%' },
+                { category: 'Donations', thisWeek: '₵4,280', lastWeek: '₵3,850', change: '+11.2%' }
+            ];
+            
+            document.getElementById('activity-summary').innerHTML = summary.map(s => `
+                <tr>
+                    <td>${s.category}</td>
+                    <td>${s.thisWeek}</td>
+                    <td>${s.lastWeek}</td>
+                    <td style="color:${s.change.startsWith('+') ? '#10b981' : s.change.startsWith('-') ? '#ef4444' : '#6b7280'}">${s.change}</td>
+                </tr>
+            `).join('');
+        }
+
         renderMembers();
         renderVisitors();
         renderAttendance();
@@ -1741,6 +2056,7 @@
         renderMeetings();
         renderActivities();
         updateDashboard();
+        renderReportsDashboard();
     </script>
 </body>
 </html>
